@@ -55,7 +55,6 @@ public class CrowdReportController {
 
         CrowdReport savedReport = reportRepository.save(toSave);
 
-        // Use getter for crowdLevel
         if (savedReport.getCrowdLevel() == CrowdLevel.FULL) {
             List<CrowdAlert> activeAlerts = alertRepository.findByAreaAndStatus(area, AlertStatus.ACTIVE);
             if (activeAlerts.isEmpty()) {
@@ -64,6 +63,13 @@ public class CrowdReportController {
                 alert.setMessage("Alert: " + area.getName() + " is at FULL capacity!");
                 alert.setStatus(AlertStatus.ACTIVE);
                 alert.setTimestamp(LocalDateTime.now());
+                alertRepository.save(alert);
+            }
+        } else {
+            // If level is not FULL, resolve any active alerts for this area
+            List<CrowdAlert> activeAlerts = alertRepository.findByAreaAndStatus(area, AlertStatus.ACTIVE);
+            for (CrowdAlert alert : activeAlerts) {
+                alert.setStatus(AlertStatus.RESOLVED);
                 alertRepository.save(alert);
             }
         }

@@ -1,3 +1,5 @@
+let currentAlertId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     loadSummary();
     loadAlerts();
@@ -12,6 +14,24 @@ document.addEventListener('DOMContentLoaded', () => {
         loadReports();
         loadAreaStatus();
     }, 30000);
+
+    // Setup modal confirmation button
+    document.getElementById('confirmResolveBtn').addEventListener('click', async () => {
+        if (!currentAlertId) return;
+        
+        const selectedLevel = document.querySelector('input[name="resolveLevel"]:checked').value;
+        try {
+            const response = await fetch(`/api/alerts/${currentAlertId}/resolve?newLevel=${selectedLevel}`, { method: 'POST' });
+            if (response.ok) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('resolveModal'));
+                modal.hide();
+                loadAlerts();
+                loadSummary();
+                loadReports();
+                loadAreaStatus();
+            }
+        } catch (e) { console.error('Error resolving alert', e); }
+    });
 });
 
 async function loadSummary() {
@@ -45,7 +65,7 @@ async function loadAlerts() {
                         <h5 class="card-title">${alert.message}</h5>
                         <p class="card-text text-muted">Area: ${alert.area.name} | Created: ${new Date(alert.timestamp).toLocaleString()}</p>
                     </div>
-                    <button class="btn btn-outline-danger" onclick="resolveAlert(${alert.id})">Resolve</button>
+                    <button class="btn btn-outline-danger" onclick="showResolveModal(${alert.id}, '${alert.area.name.replace(/'/g, "\\'")}')">Resolve</button>
                 </div>
             `;
             container.appendChild(div);
@@ -53,14 +73,11 @@ async function loadAlerts() {
     } catch (e) { console.error('Error loading alerts', e); }
 }
 
-async function resolveAlert(id) {
-    try {
-        const response = await fetch(`/api/alerts/${id}/resolve`, { method: 'POST' });
-        if (response.ok) {
-            loadAlerts();
-            loadSummary();
-        }
-    } catch (e) { console.error('Error resolving alert', e); }
+function showResolveModal(id, areaName) {
+    currentAlertId = id;
+    document.getElementById('modal-area-name').textContent = areaName;
+    const modal = new bootstrap.Modal(document.getElementById('resolveModal'));
+    modal.show();
 }
 
 async function loadReports() {
