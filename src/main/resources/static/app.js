@@ -65,20 +65,20 @@ async function loadAlerts() {
         const container = document.getElementById('alerts-list');
         container.innerHTML = '';
         if (!alerts.length) {
-            container.innerHTML = '<div class="alert alert-success">No active alerts.</div>';
+            container.innerHTML = '<div class="no-alerts"><i class="fa-solid fa-circle-check"></i>All clear — no active alerts</div>';
             return;
         }
         alerts.forEach(alert => {
             const div = document.createElement('div');
-            div.className = 'card alert-item';
+            div.className = 'alert-item';
             div.innerHTML = `
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">${alert.message}</h5>
-                        <p class="card-text text-muted">Area: ${alert.area.name} | ${new Date(alert.timestamp).toLocaleString()}</p>
-                    </div>
-                    <button class="btn btn-outline-danger" onclick="showResolveModal(${alert.id}, '${alert.area.name.replace(/'/g, "\\'")}')">Resolve</button>
-                </div>`;
+                <div>
+                    <h6>${alert.message}</h6>
+                    <small>${alert.area.name} &nbsp;·&nbsp; ${new Date(alert.timestamp).toLocaleString()}</small>
+                </div>
+                <button class="fp-btn fp-btn-danger fp-btn-sm" onclick="showResolveModal(${alert.id}, '${alert.area.name.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-check"></i> Resolve
+                </button>`;
             container.appendChild(div);
         });
     } catch (e) { console.error(e); }
@@ -110,10 +110,7 @@ async function loadReports() {
 }
 
 function getBadgeClass(level) {
-    if (level === 'LOW') return 'bg-success';
-    if (level === 'MEDIUM') return 'bg-warning text-dark';
-    if (level === 'UNKNOWN') return 'bg-secondary';
-    return 'bg-danger';
+    return 'lvl-badge lvl-' + (level || 'UNKNOWN');
 }
 
 // ── Area Status ───────────────────────────────────────────────────────────────
@@ -125,13 +122,13 @@ async function loadAreaStatus() {
         container.innerHTML = '';
         areas.forEach(area => {
             const div = document.createElement('div');
-            div.className = 'card';
+            div.className = 'area-status-card';
             div.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">${area.name}</h5>
-                    <p class="card-text">Status: <span class="badge ${getBadgeClass(area.latestLevel)}">${area.latestLevel}</span></p>
-                    <small class="text-muted">Last update: ${area.latestTime ? new Date(area.latestTime).toLocaleTimeString() : 'N/A'}</small>
-                </div>`;
+                <div>
+                    <div class="area-name">${area.name}</div>
+                    <div class="area-time">${area.latestTime ? new Date(area.latestTime).toLocaleTimeString() : 'No data'}</div>
+                </div>
+                <span class="${getBadgeClass(area.latestLevel)}">${area.latestLevel || 'UNKNOWN'}</span>`;
             container.appendChild(div);
         });
         renderMapMarkers(areas);
@@ -161,9 +158,15 @@ async function loadAreas() {
                 sel.appendChild(opt);
             });
 
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.innerHTML = `<strong>${area.name}</strong> <span class="badge" style="background:${typeColour(area.type)}">${area.type.replace(/_/g,' ')}</span><br><small class="text-muted">${area.description}</small>`;
+            const li = document.createElement('div');
+            li.className = 'area-list-item';
+            li.innerHTML = `
+                <div class="area-type-dot" style="background:${typeColour(area.type)}"></div>
+                <div>
+                    <div style="font-size:0.88rem;font-weight:600">${area.name}</div>
+                    <div class="area-desc">${area.description}</div>
+                </div>
+                <span class="type-chip" style="background:${typeColour(area.type)}22;color:${typeColour(area.type)};border:1px solid ${typeColour(area.type)}44">${area.type.replace(/_/g,' ')}</span>`;
             list.appendChild(li);
         });
     } catch (e) { console.error(e); }
@@ -321,9 +324,9 @@ function showPopup(area, wrapEl) {
     popup.innerHTML = `
         <span class="close-popup" onclick="closePopup()">×</span>
         <h6>${area.name}</h6>
-        <div><span class="badge" style="background:${typeColour(area.type)}">${area.type.replace(/_/g, ' ')}</span></div>
-        <div class="mt-1">Crowd: <span class="badge ${getBadgeClass(area.latestLevel)}">${area.latestLevel}</span></div>
-        <div class="text-muted mt-1" style="font-size:11px">Updated: ${updated}</div>`;
+        <div><span class="type-chip" style="background:${typeColour(area.type)}22;color:${typeColour(area.type)};border:1px solid ${typeColour(area.type)}44">${area.type.replace(/_/g, ' ')}</span></div>
+        <div class="mt-2">Crowd: <span class="${getBadgeClass(area.latestLevel)}">${area.latestLevel || 'UNKNOWN'}</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Updated: ${updated}</div>`;
 
     const x = parseFloat(wrapEl.style.left);
     const y = parseFloat(wrapEl.style.top);

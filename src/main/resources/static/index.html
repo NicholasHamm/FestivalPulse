@@ -3,28 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Festival Pulse Dashboard</title>
+    <title>Festival Pulse</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .card { margin-bottom: 20px; }
-        .alert-item { border-left: 5px solid #dc3545; }
+        :root {
+            --bg:        #0a0a0f;
+            --surface:   #12121a;
+            --surface2:  #1a1a26;
+            --border:    rgba(255,255,255,0.07);
+            --accent:    #7c3aed;
+            --accent2:   #a855f7;
+            --glow:      rgba(124,58,237,0.35);
+            --danger:    #ef4444;
+            --warning:   #f59e0b;
+            --success:   #10b981;
+            --text:      #e2e8f0;
+            --muted:     #64748b;
+        }
 
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,58,237,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 30% at 90% 80%, rgba(168,85,247,0.08) 0%, transparent 50%);
+        }
+
+        /* ── Navbar ── */
+        .fp-nav {
+            background: rgba(18,18,26,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .fp-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .fp-logo i { -webkit-text-fill-color: #a855f7; font-size: 1.2rem; }
+
+        /* ── Stat pills ── */
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0.35rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        .stat-pill .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+        }
+        .stat-pill.areas  .dot { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+        .stat-pill.reports .dot { background: #38bdf8;        box-shadow: 0 0 6px #38bdf8; }
+        .stat-pill.alerts  .dot { background: var(--danger);  box-shadow: 0 0 6px var(--danger); }
+
+        /* ── Tabs ── */
+        .fp-tabs {
+            display: flex;
+            gap: 0.25rem;
+            padding: 1.5rem 2rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .fp-tab {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: color 0.2s, background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+            bottom: -1px;
+        }
+        .fp-tab:hover { color: var(--text); background: var(--surface2); }
+        .fp-tab.active {
+            color: var(--accent2);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom-color: var(--surface);
+        }
+
+        /* ── Main content ── */
+        .fp-content { padding: 2rem; }
+        .fp-pane { display: none; }
+        .fp-pane.active { display: block; }
+
+        /* ── Glass card ── */
+        .g-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .g-card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .g-card-title i { color: var(--accent2); font-size: 0.9rem; }
+
+        /* ── Alert items ── */
+        .alert-item {
+            background: rgba(239,68,68,0.07);
+            border: 1px solid rgba(239,68,68,0.25);
+            border-left: 3px solid var(--danger);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .alert-item h6 { margin: 0 0 0.2rem; font-size: 0.9rem; font-weight: 600; color: #fca5a5; }
+        .alert-item small { color: var(--muted); font-size: 0.78rem; }
+        .no-alerts {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+        .no-alerts i { font-size: 2rem; color: var(--success); display: block; margin-bottom: 0.5rem; }
+
+        /* ── Table ── */
+        .fp-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .fp-table th {
+            color: var(--muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            padding: 0 0.75rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+        .fp-table td {
+            padding: 0.7rem 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+        .fp-table tr:last-child td { border-bottom: none; }
+        .fp-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* ── Badges ── */
+        .lvl-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+        .lvl-LOW    { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .lvl-MEDIUM { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+        .lvl-FULL   { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .lvl-UNKNOWN{ background: rgba(100,116,139,0.15);color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+        /* ── Area status cards ── */
+        .area-status-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .area-status-card .area-name { font-size: 0.88rem; font-weight: 600; }
+        .area-status-card .area-time { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+
+        /* ── Forms ── */
+        .fp-label { font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-bottom: 0.4rem; display: block; }
+        .fp-input, .fp-select, .fp-textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            padding: 0.6rem 0.9rem;
+            font-size: 0.88rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .fp-input:focus, .fp-select:focus, .fp-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
+        }
+        .fp-select option { background: var(--surface2); }
+        .fp-textarea { resize: vertical; min-height: 80px; }
+        .fp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.4rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .fp-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .fp-btn:active { transform: translateY(0); }
+        .fp-btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            box-shadow: 0 4px 15px var(--glow);
+        }
+        .fp-btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+        }
+        .fp-btn-danger {
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+        .fp-btn-danger:hover { background: rgba(239,68,68,0.25); }
+        .fp-btn-sm { padding: 0.35rem 0.9rem; font-size: 0.78rem; }
+
+        /* ── Area list items ── */
+        .area-list-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .area-type-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .area-list-item .area-desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+        .type-chip {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ── Map ── */
         #map-container {
             position: relative;
-            display: block;
-            border: 2px solid #dee2e6;
-            border-radius: 4px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
-            width: 100%;
+            background: var(--surface2);
         }
-        #map-img {
-            display: block;
-            width: 100%;
-            height: auto;
-            user-select: none;
-        }
+        #map-img { display: block; width: 100%; height: auto; user-select: none; }
         .area-marker-wrap {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -36,254 +312,315 @@
             transform: translate(-50%, -50%);
             top: 50%; left: 50%;
             pointer-events: none;
+            animation: pulse-ring 2s ease-out infinite;
         }
-        .crowd-ring.full {
-            width: 100px; height: 100px;
-            background: radial-gradient(circle, rgba(220,53,69,0.5) 0%, rgba(220,53,69,0) 70%);
-        }
-        .crowd-ring.medium {
-            width: 70px; height: 70px;
-            background: radial-gradient(circle, rgba(255,193,7,0.55) 0%, rgba(255,193,7,0) 70%);
-        }
+        .crowd-ring.full  { width:200px;height:200px; background:radial-gradient(circle,rgba(239,68,68,0.85) 0%,transparent 70%); }
+        .crowd-ring.medium{ width:150px;height:150px; background:radial-gradient(circle,rgba(245,158,11,0.85) 0%,transparent 70%); }
+        @keyframes pulse-ring { 0%,100%{opacity:1;transform:translate(-50%,-50%) scale(1)} 50%{opacity:0.6;transform:translate(-50%,-50%) scale(1.15)} }
         .area-marker {
-            position: relative;
-            width: 28px;
-            height: 28px;
+            position: relative; z-index: 1;
+            width: 30px; height: 30px;
             border-radius: 50%;
-            border: 2px solid #fff;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.45);
-            transition: transform 0.15s;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            line-height: 1;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex; align-items: center; justify-content: center;
         }
-        .area-marker-wrap:hover .area-marker { transform: scale(1.25); }
-
+        .area-marker-wrap:hover .area-marker { transform: scale(1.3); box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
         #pending-marker {
-            position: absolute;
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background: #ffc107;
-            border: 2px solid #fff;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            display: none;
-            z-index: 2;
+            position: absolute; width:14px; height:14px;
+            border-radius: 50%; background: #fbbf24;
+            border: 2px solid #fff; transform: translate(-50%,-50%);
+            pointer-events: none; display: none; z-index: 2;
+            box-shadow: 0 0 8px #fbbf24;
         }
-
         .marker-popup {
             position: absolute;
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             padding: 10px 14px;
-            min-width: 160px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10;
-            font-size: 13px;
-            pointer-events: none;
+            min-width: 165px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            z-index: 10; font-size: 13px; pointer-events: none;
         }
-        .marker-popup h6 { margin: 0 0 4px; font-size: 14px; }
+        .marker-popup h6 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
         .marker-popup .close-popup {
-            position: absolute;
-            top: 4px; right: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            line-height: 1;
-            pointer-events: all;
-            color: #6c757d;
+            position: absolute; top:5px; right:9px;
+            cursor: pointer; font-size: 15px; line-height:1;
+            pointer-events: all; color: var(--muted);
+        }
+        .map-hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; }
+
+        /* ── Modal ── */
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--text);
+        }
+        .modal-header { border-bottom: 1px solid var(--border); }
+        .modal-footer { border-top: 1px solid var(--border); }
+        .btn-close { filter: invert(1) brightness(0.6); }
+        .fp-radio { display: flex; flex-direction: column; gap: 0.5rem; }
+        .fp-radio label {
+            display: flex; align-items: center; gap: 0.6rem;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; padding: 0.6rem 0.9rem;
+            cursor: pointer; font-size: 0.88rem; transition: border-color 0.2s;
+        }
+        .fp-radio input[type=radio]:checked + label { border-color: var(--accent); color: var(--accent2); }
+        .fp-radio input[type=radio] { display: none; }
+
+        /* ── Section headings ── */
+        .fp-section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem; font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .fp-section-title::after {
+            content: ''; flex: 1; height: 1px;
+            background: var(--border); margin-left: 0.5rem;
         }
 
-        /* Type colours */
-        .type-ENTERTAINMENT  { background: #6f42c1; }
-        .type-FOOD_AND_DRINK { background: #fd7e14; }
-        .type-WELFARE        { background: #20c997; }
-        .type-FACILITIES     { background: #0dcaf0; }
-        .type-RETAIL         { background: #e83e8c; }
-        .type-UNKNOWN        { background: #6c757d; }
-
-        .legend-dot {
-            display: inline-block;
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            margin-right: 5px;
-            vertical-align: middle;
+        /* ── Type picker ── */
+        .type-picker { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+        .type-tile {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.7rem 0.3rem;
+            display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+            color: var(--muted); font-size: 0.7rem; font-family: 'Inter', sans-serif;
         }
+        .type-tile i { font-size: 1.2rem; color: var(--tc); }
+        .type-tile:hover { border-color: var(--tc); color: var(--text); }
+        .type-tile.active { border-color: var(--tc); background: color-mix(in srgb, var(--tc) 15%, transparent); color: var(--text); }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
     </style>
 </head>
+
 <body>
-    <div class="container mt-4">
-        <header class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Festival Pulse</h1>
-            <div id="summary-stats" class="d-flex gap-3">
-                <span class="badge bg-primary">Areas: <span id="stat-areas">0</span></span>
-                <span class="badge bg-info">Reports: <span id="stat-reports">0</span></span>
-                <span class="badge bg-danger">Active Alerts: <span id="stat-alerts">0</span></span>
-            </div>
-        </header>
 
-        <ul class="nav nav-tabs mb-3" role="tablist">
-            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dashboard" type="button">Dashboard</button></li>
-            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#areas" type="button">Areas</button></li>
-            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#map" type="button">Map</button></li>
-            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reports" type="button">Submit Report</button></li>
-        </ul>
+<!-- ── Navbar ── -->
+<nav class="fp-nav">
+    <div class="fp-logo"><i class="fa-solid fa-bolt-lightning"></i> Festival Pulse</div>
+    <div class="d-flex gap-2">
+        <div class="stat-pill areas"><div class="dot"></div><span id="stat-areas">0</span> Areas</div>
+        <div class="stat-pill reports"><div class="dot"></div><span id="stat-reports">0</span> Reports</div>
+        <div class="stat-pill alerts"><div class="dot"></div><span id="stat-alerts">0</span> Alerts</div>
+    </div>
+</nav>
 
-        <div class="tab-content">
-            <!-- Dashboard -->
-            <div class="tab-pane fade show active" id="dashboard">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h3>Active Alerts</h3>
-                        <div id="alerts-list"></div>
-                        <h3 class="mt-4">Recent Crowd Reports</h3>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead><tr><th>Time</th><th>Area</th><th>Level</th><th>Note</th></tr></thead>
-                                <tbody id="reports-list"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <h3>Area Status</h3>
-                        <div id="areas-summary-list"></div>
+<!-- ── Tabs ── -->
+<div class="fp-tabs">
+    <button class="fp-tab active" onclick="switchTab('dashboard',this)"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>
+    <button class="fp-tab" onclick="switchTab('areas',this)"><i class="fa-solid fa-map-pin"></i> Areas</button>
+    <button class="fp-tab" onclick="switchTab('map',this)"><i class="fa-solid fa-map"></i> Map</button>
+    <button class="fp-tab" onclick="switchTab('reports',this)"><i class="fa-solid fa-file-pen"></i> Submit Report</button>
+</div>
+
+<!-- ── Content ── -->
+<div class="fp-content">
+
+    <!-- Dashboard -->
+    <div class="fp-pane active" id="pane-dashboard">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="g-card">
+                    <div class="g-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Active Alerts</div>
+                    <div id="alerts-list"></div>
+                </div>
+                <div class="g-card">
+                    <div class="g-card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Crowd Reports</div>
+                    <div class="table-responsive">
+                        <table class="fp-table">
+                            <thead><tr><th>Time</th><th>Area</th><th>Level</th><th>Note</th></tr></thead>
+                            <tbody id="reports-list"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-
-            <!-- Areas -->
-            <div class="tab-pane fade" id="areas">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h3>Create Festival Area</h3>
-                        <form id="area-form">
-                            <div class="mb-3">
-                                <label class="form-label">Name</label>
-                                <input type="text" class="form-control" id="area-name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Description</label>
-                                <textarea class="form-control" id="area-desc" required></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Type</label>
-                                <select class="form-select" id="area-type">
-                                    <option value="ENTERTAINMENT">Entertainment</option>
-                                    <option value="FOOD_AND_DRINK">Food &amp; Drink</option>
-                                    <option value="WELFARE">Welfare</option>
-                                    <option value="FACILITIES">Facilities</option>
-                                    <option value="RETAIL">Retail</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Create Area</button>
-                        </form>
-                    </div>
-                    <div class="col-md-6">
-                        <h3>Existing Areas</h3>
-                        <ul class="list-group" id="all-areas-list"></ul>
-                    </div>
+            <div class="col-lg-4">
+                <div class="g-card">
+                    <div class="g-card-title"><i class="fa-solid fa-signal"></i> Area Status</div>
+                    <div id="areas-summary-list"></div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Map -->
-            <div class="tab-pane fade" id="map">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h3>Festival Map</h3>
-                        <p class="text-muted small">Click the map to set coordinates, or enter them manually.</p>
-                        <div id="map-container">
-                            <img id="map-img" src="images/map.png" alt="Festival Map"
-                                 onerror="this.onerror=null;this.src='https://placehold.co/900x560/e9ecef/6c757d?text=Festival+Map'">
-                            <div id="pending-marker"></div>
-                        </div>
-                        <div class="mt-2 text-muted small" id="map-click-hint">Click map to select coordinates</div>
-                    </div>
-                    <div class="col-md-4">
-                        <h3>Place Area</h3>
-                        <form id="map-place-form">
-                            <div class="mb-3">
-                                <label class="form-label">Area</label>
-                                <select class="form-select" id="map-area-select" required>
-                                    <option value="">Select area...</option>
-                                </select>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label class="form-label">X (%)</label>
-                                    <input type="number" class="form-control" id="map-x" min="0" max="100" step="0.1" placeholder="0–100">
-                                </div>
-                                <div class="col">
-                                    <label class="form-label">Y (%)</label>
-                                    <input type="number" class="form-control" id="map-y" min="0" max="100" step="0.1" placeholder="0–100">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Save Position</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Reports -->
-            <div class="tab-pane fade" id="reports">
-                <div class="col-md-6">
-                    <h3>Submit Crowd Report</h3>
-                    <form id="report-form">
+    <!-- Areas -->
+    <div class="fp-pane" id="pane-areas">
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="g-card">
+                    <div class="g-card-title"><i class="fa-solid fa-plus"></i> Create Festival Area</div>
+                    <form id="area-form">
                         <div class="mb-3">
-                            <label class="form-label">Festival Area</label>
-                            <select class="form-select" id="report-area" required>
-                                <option value="">Select Area...</option>
+                            <label class="fp-label">Name</label>
+                            <input type="text" class="fp-input" id="area-name" required placeholder="e.g. Main Stage">
+                        </div>
+                        <div class="mb-3">
+                            <label class="fp-label">Description</label>
+                            <textarea class="fp-textarea" id="area-desc" required placeholder="Brief description..."></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="fp-label">Type</label>
+                            <div class="type-picker" id="area-type-picker">
+                                <input type="hidden" id="area-type" value="ENTERTAINMENT">
+                                <button type="button" class="type-tile active" data-value="ENTERTAINMENT" style="--tc:#6f42c1">
+                                    <i class="fa-solid fa-music"></i><span>Entertainment</span>
+                                </button>
+                                <button type="button" class="type-tile" data-value="FOOD_AND_DRINK" style="--tc:#fd7e14">
+                                    <i class="fa-solid fa-utensils"></i><span>Food &amp; Drink</span>
+                                </button>
+                                <button type="button" class="type-tile" data-value="WELFARE" style="--tc:#20c997">
+                                    <i class="fa-solid fa-heart"></i><span>Welfare</span>
+                                </button>
+                                <button type="button" class="type-tile" data-value="FACILITIES" style="--tc:#0dcaf0">
+                                    <i class="fa-solid fa-restroom"></i><span>Facilities</span>
+                                </button>
+                                <button type="button" class="type-tile" data-value="RETAIL" style="--tc:#e83e8c">
+                                    <i class="fa-solid fa-bag-shopping"></i><span>Retail</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="fp-btn fp-btn-primary w-100"><i class="fa-solid fa-plus"></i> Create Area</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="g-card">
+                    <div class="g-card-title"><i class="fa-solid fa-list"></i> Existing Areas</div>
+                    <div id="all-areas-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div class="fp-pane" id="pane-map">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="g-card" style="padding:1rem">
+                    <div class="g-card-title" style="padding:0 0.5rem 0.5rem"><i class="fa-solid fa-map"></i> Festival Map</div>
+                    <div id="map-container">
+                        <img id="map-img" src="images/map.png" alt="Festival Map"
+                             onerror="this.onerror=null;this.src='https://placehold.co/900x560/12121a/64748b?text=Festival+Map'">
+                        <div id="pending-marker"></div>
+                    </div>
+                    <div class="map-hint" id="map-click-hint"><i class="fa-solid fa-crosshairs"></i> Click map to select coordinates</div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="g-card">
+                    <div class="g-card-title"><i class="fa-solid fa-location-dot"></i> Place Area on Map</div>
+                    <form id="map-place-form">
+                        <div class="mb-3">
+                            <label class="fp-label">Area</label>
+                            <select class="fp-select" id="map-area-select" required>
+                                <option value="">Select area...</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Crowd Level</label>
-                            <select class="form-select" id="report-level">
-                                <option value="LOW">LOW</option>
-                                <option value="MEDIUM">MEDIUM</option>
-                                <option value="FULL">FULL</option>
-                            </select>
+                        <div class="row g-2 mb-4">
+                            <div class="col">
+                                <label class="fp-label">X (%)</label>
+                                <input type="number" class="fp-input" id="map-x" min="0" max="100" step="0.1" placeholder="0–100">
+                            </div>
+                            <div class="col">
+                                <label class="fp-label">Y (%)</label>
+                                <input type="number" class="fp-input" id="map-y" min="0" max="100" step="0.1" placeholder="0–100">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Short Note</label>
-                            <input type="text" class="form-control" id="report-note">
-                        </div>
-                        <button type="submit" class="btn btn-success">Submit Report</button>
+                        <button type="submit" class="fp-btn fp-btn-primary w-100"><i class="fa-solid fa-floppy-disk"></i> Save Position</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="app.js"></script>
-
-    <!-- Resolve Alert Modal -->
-    <div class="modal fade" id="resolveModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Resolve Alert</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Select the current crowd level for <strong id="modal-area-name"></strong>:</p>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="resolveLevel" id="levelLow" value="LOW">
-                        <label class="form-check-label" for="levelLow">LOW</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="resolveLevel" id="levelMedium" value="MEDIUM" checked>
-                        <label class="form-check-label" for="levelMedium">MEDIUM</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmResolveBtn">Resolve Alert</button>
+    <!-- Submit Report -->
+    <div class="fp-pane" id="pane-reports">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="g-card">
+                    <div class="g-card-title"><i class="fa-solid fa-file-pen"></i> Submit Crowd Report</div>
+                    <form id="report-form">
+                        <div class="mb-3">
+                            <label class="fp-label">Festival Area</label>
+                            <select class="fp-select" id="report-area" required>
+                                <option value="">Select Area...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="fp-label">Crowd Level</label>
+                            <select class="fp-select" id="report-level">
+                                <option value="LOW">🟢 LOW</option>
+                                <option value="MEDIUM">🟡 MEDIUM</option>
+                                <option value="FULL">🔴 FULL</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="fp-label">Short Note <span style="color:var(--muted)">(optional)</span></label>
+                            <input type="text" class="fp-input" id="report-note" placeholder="Any observations...">
+                        </div>
+                        <button type="submit" class="fp-btn fp-btn-success w-100"><i class="fa-solid fa-paper-plane"></i> Submit Report</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+
+</div><!-- /fp-content -->
+
+<!-- ── Resolve Modal ── -->
+<div class="modal fade" id="resolveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-family:'Space Grotesk',sans-serif">Resolve Alert</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--muted);font-size:0.88rem">Select the current crowd level for <strong style="color:var(--text)" id="modal-area-name"></strong>:</p>
+                <div class="fp-radio mt-3">
+                    <input type="radio" name="resolveLevel" id="levelLow" value="LOW">
+                    <label for="levelLow"><span class="lvl-badge lvl-LOW">LOW</span></label>
+                    <input type="radio" name="resolveLevel" id="levelMedium" value="MEDIUM" checked>
+                    <label for="levelMedium"><span class="lvl-badge lvl-MEDIUM">MEDIUM</span></label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="fp-btn" style="background:var(--surface2);color:var(--muted)" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="fp-btn fp-btn-primary" id="confirmResolveBtn"><i class="fa-solid fa-check"></i> Resolve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function switchTab(id, btn) {
+    document.querySelectorAll('.fp-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.fp-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('pane-' + id).classList.add('active');
+    btn.classList.add('active');
+}
+document.getElementById('area-type-picker').addEventListener('click', e => {
+    const tile = e.target.closest('.type-tile');
+    if (!tile) return;
+    document.querySelectorAll('.type-tile').forEach(t => t.classList.remove('active'));
+    tile.classList.add('active');
+    document.getElementById('area-type').value = tile.dataset.value;
+});
+</script>
+<script src="app.js"></script>
 </body>
 </html>
