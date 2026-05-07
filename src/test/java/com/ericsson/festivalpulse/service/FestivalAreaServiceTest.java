@@ -5,9 +5,7 @@ import com.ericsson.festivalpulse.enums.AreaType;
 import com.ericsson.festivalpulse.enums.CrowdLevel;
 import com.ericsson.festivalpulse.models.CrowdReport;
 import com.ericsson.festivalpulse.models.FestivalArea;
-import com.ericsson.festivalpulse.models.Location;
 import com.ericsson.festivalpulse.repository.FestivalAreaRepository;
-import com.ericsson.festivalpulse.repository.LocationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +27,6 @@ class FestivalAreaServiceTest {
 	@Mock
 	FestivalAreaRepository areaRepo;
 	@Mock
-	LocationRepository locationRepo;
-	@Mock
 	CrowdReportService crowdReportService;
 	@Mock
 	CrowdAlertService alertService;
@@ -39,7 +35,7 @@ class FestivalAreaServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		service = new FestivalAreaService(areaRepo, locationRepo, crowdReportService);
+		service = new FestivalAreaService(areaRepo, crowdReportService);
 	}
 
 	private FestivalArea makeArea(Long id, String name) {
@@ -88,37 +84,6 @@ class FestivalAreaServiceTest {
 		when(areaRepo.findAll()).thenReturn(areas);
 
 		assertThat(service.getAllAreas()).hasSize(2);
-	}
-
-	@Test
-	void setAreaLocation_setsLocation_whenIdProvided() {
-		FestivalArea area = makeArea(1L, "Main Stage");
-		Location loc = new Location("North");
-		loc.setId(10L);
-		when(locationRepo.findById(10L)).thenReturn(Optional.of(loc));
-
-		service.setAreaLocation(area, 10L);
-
-		assertThat(area.getLocation()).isEqualTo(loc);
-	}
-
-	@Test
-	void setAreaLocation_clearsLocation_whenIdIsNull() {
-		FestivalArea area = makeArea(1L, "Main Stage");
-		area.setLocation(new Location("North"));
-
-		service.setAreaLocation(area, null);
-
-		assertThat(area.getLocation()).isNull();
-	}
-
-	@Test
-	void setAreaLocation_throws_whenLocationNotFound() {
-		FestivalArea area = makeArea(1L, "Main Stage");
-		when(locationRepo.findById(99L)).thenReturn(Optional.empty());
-
-		assertThatThrownBy(() -> service.setAreaLocation(area, 99L)).isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Location not found");
 	}
 
 	@Test

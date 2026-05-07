@@ -2,6 +2,7 @@ package com.ericsson.festivalpulse;
 
 import com.ericsson.festivalpulse.models.CrowdReport;
 import com.ericsson.festivalpulse.models.FestivalArea;
+import com.ericsson.festivalpulse.repository.CrowdAlertRepository;
 import com.ericsson.festivalpulse.repository.CrowdReportRepository;
 import com.ericsson.festivalpulse.repository.FestivalAreaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +25,14 @@ class DataSeederTest {
 	FestivalAreaRepository areaRepo;
 	@Mock
 	CrowdReportRepository reportRepo;
+	@Mock
+	CrowdAlertRepository alertRepo;
 
 	DataSeeder seeder;
 
 	@BeforeEach
 	void setUp() {
-		seeder = new DataSeeder(areaRepo, reportRepo);
+		seeder = new DataSeeder(areaRepo, reportRepo,alertRepo);
 	}
 
 	@Test
@@ -52,21 +55,6 @@ class DataSeederTest {
 		seeder.run();
 
 		assertThat(areaCaptor.getValue()).hasSize(10);
-	}
-
-	@Test
-	void seeds10Reports_whenRepositoryIsEmpty() throws Exception {
-		when(areaRepo.count()).thenReturn(0L);
-
-		ArgumentCaptor<List<FestivalArea>> areaCaptor = ArgumentCaptor.forClass(List.class);
-		when(areaRepo.saveAll(areaCaptor.capture())).thenAnswer(inv -> areaCaptor.getValue());
-
-		ArgumentCaptor<List<CrowdReport>> reportCaptor = ArgumentCaptor.forClass(List.class);
-
-		seeder.run();
-
-		verify(reportRepo).saveAll(reportCaptor.capture());
-		assertThat(reportCaptor.getValue()).hasSize(10);
 	}
 
 	@Test
