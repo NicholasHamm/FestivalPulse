@@ -1,4 +1,6 @@
-package com.ericsson.festivalpulse;
+package com.ericsson.festivalpulse.models;
+
+import com.ericsson.festivalpulse.enums.AreaType;
 
 public class FestivalArea {
     String name;
