@@ -2,10 +2,12 @@ package com.ericsson.festivalpulse.service;
 
 import com.ericsson.festivalpulse.enums.AlertStatus;
 import com.ericsson.festivalpulse.enums.CrowdLevel;
+import com.ericsson.festivalpulse.kafka.CrowdReportEvent;
 import com.ericsson.festivalpulse.models.CrowdAlert;
 import com.ericsson.festivalpulse.models.CrowdReport;
 import com.ericsson.festivalpulse.models.FestivalArea;
 import com.ericsson.festivalpulse.repository.CrowdReportRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,10 +17,15 @@ import java.util.Optional;
 @Service
 public class CrowdReportService {
 
-    private final CrowdReportRepository crowdReportRepository;
+    static final String TOPIC = "crowd-reports";
 
-    public CrowdReportService(CrowdReportRepository crowdReportRepository) {
+    private final CrowdReportRepository crowdReportRepository;
+    private final KafkaTemplate<String, CrowdReportEvent> kafkaTemplate;
+
+    public CrowdReportService(CrowdReportRepository crowdReportRepository,
+                               KafkaTemplate<String, CrowdReportEvent> kafkaTemplate) {
         this.crowdReportRepository = crowdReportRepository;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public List<CrowdReport> getRecentCrowdReports() {
@@ -50,17 +57,13 @@ public class CrowdReportService {
 
         CrowdReport savedReport = saveCrowdReport(toSave);
 
-        if (savedReport.getCrowdLevel() == CrowdLevel.FULL) {
-            List<CrowdAlert> activeAlerts = alertService.getActiveAlertsByArea(area);
-            if (activeAlerts.isEmpty()) {
-                CrowdAlert alert = new CrowdAlert();
-                alert.setArea(area);
-                alert.setMessage("Alert: " + area.getName() + " is at FULL capacity!");
-                alert.setStatus(AlertStatus.ACTIVE);
-                alert.setTimestamp(LocalDateTime.now());
-                alertService.saveAlert(alert);
-            }
-        } else {
+        try {
+            kafkaTemplate.send(TOPIC, new CrowdReportEvent(area.getId(), savedReport.getCrowdLevel()));
+        } catch (Exception e) {
+            // Kafka unavailable — alert creation via consumer will be skipped
+        }
+
+        if (savedReport.getCrowdLevel() != CrowdLevel.FULL) {
             List<CrowdAlert> activeAlerts = alertService.getActiveAlertsByArea(area);
             for (CrowdAlert alert : activeAlerts) {
                 alert.setStatus(AlertStatus.RESOLVED);
