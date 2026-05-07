@@ -18,11 +18,14 @@ public class CrowdReport {
 
     private LocalDateTime timestamp;
 
+    private String note;
+
     public CrowdReport() {}
 
-    public CrowdReport(FestivalArea area, CrowdLevel crowdLevel, LocalDateTime timestamp) {
+    public CrowdReport(FestivalArea area, CrowdLevel crowdLevel, String note, LocalDateTime timestamp) {
         this.area = area;
         this.crowdLevel = crowdLevel;
+        this.note = note;
         this.timestamp = timestamp;
     }
 
@@ -56,5 +59,13 @@ public class CrowdReport {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }
