@@ -3,12 +3,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAlerts();
     loadReports();
     loadAreas();
+    loadAreaStatus();
 
     // Refresh every 30 seconds
     setInterval(() => {
         loadSummary();
         loadAlerts();
         loadReports();
+        loadAreaStatus();
     }, 30000);
 });
 
@@ -74,7 +76,7 @@ async function loadReports() {
                 <td>${new Date(report.timestamp).toLocaleTimeString()}</td>
                 <td>${report.area.name}</td>
                 <td><span class="badge ${getBadgeClass(report.crowdLevel)}">${report.crowdLevel}</span></td>
-                <td>${report.note || ''}</td>
+                <td>${report.shortNote || ''}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -85,6 +87,30 @@ function getBadgeClass(level) {
     if (level === 'LOW') return 'bg-success';
     if (level === 'MEDIUM') return 'bg-warning';
     return 'bg-danger';
+}
+
+async function loadAreaStatus() {
+    try {
+        const response = await fetch('/api/areas/status');
+        const areas = await response.json();
+        const container = document.getElementById('areas-summary-list');
+        container.innerHTML = '';
+
+        areas.forEach(area => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">${area.name}</h5>
+                    <p class="card-text">
+                        Status: <span class="badge ${getBadgeClass(area.latestLevel)}">${area.latestLevel}</span>
+                    </p>
+                    <small class="text-muted">Last update: ${area.latestTime ? new Date(area.latestTime).toLocaleTimeString() : 'N/A'}</small>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    } catch (e) { console.error('Error loading area status', e); }
 }
 
 async function loadAreas() {
@@ -131,6 +157,7 @@ document.getElementById('area-form').addEventListener('submit', async (e) => {
         if (response.ok) {
             document.getElementById('area-form').reset();
             loadAreas();
+            loadAreaStatus();
             loadSummary();
             alert('Area created successfully!');
         }
@@ -145,7 +172,7 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
     const report = {
         area: { id: areaId },
         crowdLevel: document.getElementById('report-level').value,
-        note: document.getElementById('report-note').value
+        shortNote: document.getElementById('report-note').value
     };
 
     try {
@@ -159,6 +186,7 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
             loadReports();
             loadAlerts();
             loadSummary();
+            loadAreaStatus();
             alert('Report submitted successfully!');
         } else {
             const msg = await response.text();
