@@ -21,7 +21,7 @@ public class CrowdReportService {
     public Iterable<CrowdReport> getRecentCrowdReports(int limit) {
         return crowdReportRepository.findAll().stream()
                 .limit(limit)
-                .sorted(Comparator.comparing(CrowdReport::getTimestamp))
+                .sorted(Comparator.comparing(CrowdReport::timestamp).reversed())
                 .toList();
     }
 }

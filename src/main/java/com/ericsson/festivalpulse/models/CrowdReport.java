@@ -5,76 +5,25 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-public class CrowdReport {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public record CrowdReport(
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        Long id,
 
-    @ManyToOne
-    private FestivalArea area;
+        @ManyToOne
+        FestivalArea area,
 
-    @Enumerated(EnumType.STRING)
-    private CrowdLevel crowdLevel;
+        @Enumerated(EnumType.STRING)
+        CrowdLevel crowdLevel,
 
-    private LocalDateTime timestamp;
-    private String shortNote;
-
-    private String note;
-
-    public CrowdReport() {}
-
-    public CrowdReport(FestivalArea area, CrowdLevel crowdLevel, String note, LocalDateTime timestamp) {
-        this.area = area;
-        this.crowdLevel = crowdLevel;
-        this.note = note;
-        this.timestamp = timestamp;
-        this.shortNote = "";
+        LocalDateTime timestamp,
+        String shortNote
+) {
+    public CrowdReport(FestivalArea area, CrowdLevel crowdLevel, LocalDateTime timestamp) {
+        this(null, area, crowdLevel, timestamp, "");
     }
 
     public CrowdReport(FestivalArea area, CrowdLevel crowdLevel, LocalDateTime timestamp, String shortNote) {
-        this.area = area;
-        this.crowdLevel = crowdLevel;
-        this.timestamp = timestamp;
-        this.shortNote = shortNote;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public FestivalArea getArea() {
-        return area;
-    }
-
-    public void setArea(FestivalArea area) {
-        this.area = area;
-    }
-
-    public CrowdLevel getCrowdLevel() {
-        return crowdLevel;
-    }
-
-    public void setCrowdLevel(CrowdLevel crowdLevel) {
-        this.crowdLevel = crowdLevel;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
+        this(null, area, crowdLevel, timestamp, shortNote);
     }
 }
