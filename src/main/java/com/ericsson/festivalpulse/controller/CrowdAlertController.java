@@ -30,21 +30,10 @@ public class CrowdAlertController {
 
     @PostMapping("/{id}/resolve")
     public ResponseEntity<CrowdAlert> resolveAlert(@PathVariable Long id, @RequestParam CrowdLevel newLevel) {
-        CrowdAlert alert = alertService.getAlertById(id).orElse(null);
-        if (alert == null) {
+        CrowdAlert savedAlert = alertService.resolveAlert(id, newLevel, reportService);
+        if (savedAlert == null) {
             return ResponseEntity.notFound().build();
         }
-        alert.setStatus(AlertStatus.RESOLVED);
-        CrowdAlert savedAlert = alertService.saveAlert(alert);
-
-        // Create a new report to reflect the updated crowd level
-        CrowdReport report = new CrowdReport();
-        report.setArea(alert.getArea());
-        report.setCrowdLevel(newLevel);
-        report.setTimestamp(LocalDateTime.now());
-        report.setShortNote("Manually resolved alert");
-        reportService.saveCrowdReport(report);
-
         return ResponseEntity.ok(savedAlert);
     }
 

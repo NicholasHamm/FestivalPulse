@@ -31,50 +31,12 @@ public class CrowdReportController {
 
     @PostMapping
     public ResponseEntity<?> submitReport(@RequestBody CrowdReport request) {
-        // Use getter for area
-        if (request.getArea() == null || request.getArea().getId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Area ID is required");
+        try {
+            CrowdReport savedReport = reportService.submitReport(request, areaService, alertService);
+            return ResponseEntity.ok(savedReport);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        // Use getter for area
-        FestivalArea area = areaService.getAreaById(request.getArea().getId());
-        if (area == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Area not found");
-        }
-
-        // Determine timestamp (use existing or set to now)
-        LocalDateTime timestamp = request.getTimestamp() != null ? request.getTimestamp() : LocalDateTime.now();
-
-        // Create a new CrowdReport with the resolved area and timestamp
-        CrowdReport toSave = new CrowdReport(
-                area,
-                request.getCrowdLevel(),
-                timestamp,
-                request.getShortNote()
-        );
-
-        CrowdReport savedReport = reportService.saveCrowdReport(toSave);
-
-        if (savedReport.getCrowdLevel() == CrowdLevel.FULL) {
-            List<CrowdAlert> activeAlerts = alertService.getActiveAlertsByArea(area);
-            if (activeAlerts.isEmpty()) {
-                CrowdAlert alert = new CrowdAlert();
-                alert.setArea(area);
-                alert.setMessage("Alert: " + area.getName() + " is at FULL capacity!");
-                alert.setStatus(AlertStatus.ACTIVE);
-                alert.setTimestamp(LocalDateTime.now());
-                alertService.saveAlert(alert);
-            }
-        } else {
-            // If level is not FULL, resolve any active alerts for this area
-            List<CrowdAlert> activeAlerts = alertService.getActiveAlertsByArea(area);
-            for (CrowdAlert alert : activeAlerts) {
-                alert.setStatus(AlertStatus.RESOLVED);
-                alertService.saveAlert(alert);
-            }
-        }
-
-        return ResponseEntity.ok(savedReport);
     }
 
     @GetMapping

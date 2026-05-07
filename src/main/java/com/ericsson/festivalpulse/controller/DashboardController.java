@@ -27,10 +27,6 @@ public class DashboardController {
 
     @GetMapping("/summary")
     public ResponseEntity<Map<String, Object>> getSummary() {
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("totalAreas", areaService.countAreas());
-        summary.put("totalReports", reportService.countReports());
-        summary.put("activeAlerts", alertService.countActiveAlerts());
-        return ResponseEntity.ok(summary);
+        return ResponseEntity.ok(areaService.getDashboardSummary(reportService, alertService));
     }
 }

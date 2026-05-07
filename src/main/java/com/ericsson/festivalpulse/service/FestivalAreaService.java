@@ -8,6 +8,8 @@ import com.ericsson.festivalpulse.repository.FestivalAreaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +34,14 @@ public class FestivalAreaService {
 
     public long countAreas() {
         return festivalAreaRepository.count();
+    }
+
+    public Map<String, Object> getDashboardSummary(CrowdReportService reportService, CrowdAlertService alertService) {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalAreas", countAreas());
+        summary.put("totalReports", reportService.countReports());
+        summary.put("activeAlerts", alertService.countActiveAlerts());
+        return summary;
     }
 
     public List<FestivalAreaStatus> getAreasStatus() {
