@@ -103,6 +103,7 @@ async function loadReports() {
 function getBadgeClass(level) {
     if (level === 'LOW') return 'bg-success';
     if (level === 'MEDIUM') return 'bg-warning';
+    if (level === 'UNKNOWN') return 'bg-secondary';
     return 'bg-danger';
 }
 

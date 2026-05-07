@@ -1,5 +1,5 @@
 package com.ericsson.festivalpulse.enums;
 
 public enum CrowdLevel {
-    LOW, MEDIUM, FULL
+    LOW, MEDIUM, FULL, UNKNOWN
 }
