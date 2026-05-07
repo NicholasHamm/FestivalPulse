@@ -43,12 +43,8 @@ public class FestivalAreaController {
     public ResponseEntity<?> updateLocation(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         FestivalArea area = areaService.getAreaById(id);
         if (area == null) return ResponseEntity.notFound().build();
-
         if (body.containsKey("locationX")) area.setLocationX(((Number) body.get("locationX")).doubleValue());
         if (body.containsKey("locationY")) area.setLocationY(((Number) body.get("locationY")).doubleValue());
-        if (body.containsKey("locationId")) {
-            areaService.setAreaLocation(area, body.get("locationId") == null ? null : ((Number) body.get("locationId")).longValue());
-        }
         return ResponseEntity.ok(areaService.saveArea(area));
     }
 }

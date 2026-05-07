@@ -15,10 +15,6 @@ public class FestivalArea {
     @Enumerated(EnumType.STRING)
     private AreaType type;
 
-    @ManyToOne
-    @JoinColumn(name = "location_id")
-    private Location location;
-
     private Double locationX;
     private Double locationY;
 
@@ -38,8 +34,6 @@ public class FestivalArea {
     public void setDescription(String description) { this.description = description; }
     public AreaType getType() { return type; }
     public void setType(AreaType type) { this.type = type; }
-    public Location getLocation() { return location; }
-    public void setLocation(Location location) { this.location = location; }
     public Double getLocationX() { return locationX; }
     public void setLocationX(Double locationX) { this.locationX = locationX; }
     public Double getLocationY() { return locationY; }

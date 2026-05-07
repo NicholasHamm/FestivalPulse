@@ -1,9 +1,12 @@
 package com.ericsson.festivalpulse;
 
+import com.ericsson.festivalpulse.enums.AlertStatus;
 import com.ericsson.festivalpulse.enums.AreaType;
 import com.ericsson.festivalpulse.enums.CrowdLevel;
+import com.ericsson.festivalpulse.models.CrowdAlert;
 import com.ericsson.festivalpulse.models.CrowdReport;
 import com.ericsson.festivalpulse.models.FestivalArea;
+import com.ericsson.festivalpulse.repository.CrowdAlertRepository;
 import com.ericsson.festivalpulse.repository.CrowdReportRepository;
 import com.ericsson.festivalpulse.repository.FestivalAreaRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -17,10 +20,12 @@ public class DataSeeder implements CommandLineRunner {
 
     private final FestivalAreaRepository areaRepo;
     private final CrowdReportRepository reportRepo;
+    private final CrowdAlertRepository alertRepo;
 
-    DataSeeder(FestivalAreaRepository areaRepo, CrowdReportRepository reportRepo) {
+    DataSeeder(FestivalAreaRepository areaRepo, CrowdReportRepository reportRepo, CrowdAlertRepository alertRepo) {
         this.areaRepo = areaRepo;
         this.reportRepo = reportRepo;
+        this.alertRepo = alertRepo;
     }
 
     @Override
@@ -38,23 +43,37 @@ public class DataSeeder implements CommandLineRunner {
         FestivalArea info        = area("Info Point",      "Maps, lost & found, schedules",      AreaType.FACILITIES,     34.0, 88.0);
         FestivalArea retail      = area("Merch & Retail",  "Official merchandise & vendors",     AreaType.RETAIL,         83.0, 52.0);
 
-        List<FestivalArea> saved = areaRepo.saveAll(
+        List<FestivalArea> areas = areaRepo.saveAll(
             List.of(mainStage, secondStage, foodCourt, bar, nightMarket, welfare, medical, facilities, info, retail)
         );
 
         LocalDateTime now = LocalDateTime.now();
-        reportRepo.saveAll(List.of(
-            new CrowdReport(saved.get(0), CrowdLevel.FULL,   now.minusMinutes(5),  "Packed for headliner"),
-            new CrowdReport(saved.get(1), CrowdLevel.MEDIUM, now.minusMinutes(12), "Filling up nicely"),
-            new CrowdReport(saved.get(2), CrowdLevel.FULL,   now.minusMinutes(8),  "Long queues at vendors"),
-            new CrowdReport(saved.get(3), CrowdLevel.MEDIUM, now.minusMinutes(20), "Busy but manageable"),
-            new CrowdReport(saved.get(4), CrowdLevel.LOW,    now.minusMinutes(30), "Quiet so far"),
-            new CrowdReport(saved.get(5), CrowdLevel.LOW,    now.minusMinutes(15), ""),
-            new CrowdReport(saved.get(6), CrowdLevel.LOW,    now.minusMinutes(40), ""),
-            new CrowdReport(saved.get(7), CrowdLevel.MEDIUM, now.minusMinutes(10), "Queues at toilets"),
-            new CrowdReport(saved.get(8), CrowdLevel.LOW,    now.minusMinutes(25), ""),
-            new CrowdReport(saved.get(9), CrowdLevel.MEDIUM, now.minusMinutes(18), "Steady footfall")
-        ));
+        record Seed(int idx, CrowdLevel level, String note) {}
+        List<Seed> seeds = List.of(
+            new Seed(0, CrowdLevel.FULL,   "Packed for headliner"),
+            new Seed(1, CrowdLevel.MEDIUM, "Filling up nicely"),
+            new Seed(2, CrowdLevel.FULL,   "Long queues at vendors"),
+            new Seed(3, CrowdLevel.MEDIUM, "Busy but manageable"),
+            new Seed(4, CrowdLevel.LOW,    "Quiet so far"),
+            new Seed(5, CrowdLevel.LOW,    ""),
+            new Seed(6, CrowdLevel.LOW,    ""),
+            new Seed(7, CrowdLevel.MEDIUM, "Queues at toilets"),
+            new Seed(8, CrowdLevel.LOW,    ""),
+            new Seed(9, CrowdLevel.MEDIUM, "Steady footfall")
+        );
+
+        for (Seed s : seeds) {
+            FestivalArea a = areas.get(s.idx());
+            reportRepo.save(new CrowdReport(a, s.level(), now.minusMinutes(5 + s.idx() * 3), s.note()));
+            if (s.level() == CrowdLevel.FULL) {
+                CrowdAlert alert = new CrowdAlert();
+                alert.setArea(a);
+                alert.setMessage("Alert: " + a.getName() + " is at FULL capacity!");
+                alert.setStatus(AlertStatus.ACTIVE);
+                alert.setTimestamp(now.minusMinutes(5 + s.idx() * 3));
+                alertRepo.save(alert);
+            }
+        }
     }
 
     private FestivalArea area(String name, String desc, AreaType type, double x, double y) {
