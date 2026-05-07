@@ -25,9 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAreaStatus();
     initMap();
 
-    setInterval(() => {
-        loadSummary(); loadAlerts(); loadReports(); loadAreaStatus();
-    }, 30000);
+    setInterval(() => { loadAlerts(); loadSummary(); }, 3000);
+    setInterval(() => { loadReports(); loadAreaStatus(); }, 30000);
 
     document.getElementById('confirmResolveBtn').addEventListener('click', async () => {
         if (!currentAlertId) return;
