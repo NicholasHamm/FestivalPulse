@@ -23,6 +23,11 @@ public class FestivalAreaService {
     }
 
     public FestivalArea createArea(FestivalArea area) {
+
+        Boolean exists = festivalAreaRepository.existsFestivalAreasByName(area.getName());
+        if (exists) {
+            throw new IllegalArgumentException("Area already exists");
+        }
         return festivalAreaRepository.save(area);
     }
     public FestivalArea getAreaById(Long id) {

@@ -4,6 +4,7 @@ import com.ericsson.festivalpulse.dto.FestivalAreaStatus;
 import com.ericsson.festivalpulse.models.FestivalArea;
 import com.ericsson.festivalpulse.service.FestivalAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +18,15 @@ public class FestivalAreaController {
     private FestivalAreaService areaService;
 
     @PostMapping
-    public ResponseEntity<FestivalArea> createArea(@RequestBody FestivalArea request) {
-        FestivalArea savedArea = areaService.createArea(request);
-        return ResponseEntity.ok(savedArea);
+    public ResponseEntity<?> createArea(@RequestBody FestivalArea request) {
+        try{
+            FestivalArea savedArea = areaService.createArea(request);
+            return ResponseEntity.ok(savedArea);                     
+        }
+        catch(IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+
     }
 
     @GetMapping

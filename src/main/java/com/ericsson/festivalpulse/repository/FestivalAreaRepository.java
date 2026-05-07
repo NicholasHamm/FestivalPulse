@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FestivalAreaRepository extends JpaRepository<FestivalArea, Long> {
+    Boolean existsFestivalAreasByName(String name);
 }

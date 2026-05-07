@@ -179,6 +179,10 @@ document.getElementById('area-form').addEventListener('submit', async (e) => {
             loadSummary();
             alert('Area created successfully!');
         }
+        else {
+            const msg = await response.text();
+            alert('Error: ' + msg);
+        }
     } catch (e) { console.error('Error creating area', e); }
 });
 
