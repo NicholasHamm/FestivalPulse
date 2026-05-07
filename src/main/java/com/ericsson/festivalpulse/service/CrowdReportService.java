@@ -1,10 +1,12 @@
 package com.ericsson.festivalpulse.service;
 
 import com.ericsson.festivalpulse.models.CrowdReport;
+import com.ericsson.festivalpulse.models.FestivalArea;
 import com.ericsson.festivalpulse.repository.CrowdReportRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CrowdReportService {
@@ -15,13 +17,19 @@ public class CrowdReportService {
         this.crowdReportRepository = crowdReportRepository;
     }
 
-    public void saveCrowdReport(CrowdReport crowdReport) {
-        crowdReportRepository.save(crowdReport);
+    public List<CrowdReport> getRecentCrowdReports() {
+        return crowdReportRepository.findTop10ByOrderByTimestampDesc();
     }
-    public Iterable<CrowdReport> getRecentCrowdReports(int limit) {
-        return crowdReportRepository.findAll().stream()
-                .limit(limit)
-                .sorted(Comparator.comparing(CrowdReport::getTimestamp).reversed())
-                .toList();
+
+    public CrowdReport saveCrowdReport(CrowdReport crowdReport) {
+        return crowdReportRepository.save(crowdReport);
+    }
+
+    public Optional<CrowdReport> getLatestReportForArea(FestivalArea area) {
+        return crowdReportRepository.findFirstByAreaOrderByTimestampDesc(area);
+    }
+
+    public long countReports() {
+        return crowdReportRepository.count();
     }
 }

@@ -1,9 +1,8 @@
 package com.ericsson.festivalpulse.controller;
 
-import com.ericsson.festivalpulse.enums.AlertStatus;
-import com.ericsson.festivalpulse.repository.CrowdAlertRepository;
-import com.ericsson.festivalpulse.repository.CrowdReportRepository;
-import com.ericsson.festivalpulse.repository.FestivalAreaRepository;
+import com.ericsson.festivalpulse.service.CrowdAlertService;
+import com.ericsson.festivalpulse.service.CrowdReportService;
+import com.ericsson.festivalpulse.service.FestivalAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,20 +17,20 @@ import java.util.Map;
 public class DashboardController {
 
     @Autowired
-    private FestivalAreaRepository areaRepository;
+    private FestivalAreaService areaService;
 
     @Autowired
-    private CrowdReportRepository reportRepository;
+    private CrowdReportService reportService;
 
     @Autowired
-    private CrowdAlertRepository alertRepository;
+    private CrowdAlertService alertService;
 
     @GetMapping("/summary")
     public ResponseEntity<Map<String, Object>> getSummary() {
         Map<String, Object> summary = new HashMap<>();
-        summary.put("totalAreas", areaRepository.count());
-        summary.put("totalReports", reportRepository.count());
-        summary.put("activeAlerts", alertRepository.findByStatus(AlertStatus.ACTIVE).size());
+        summary.put("totalAreas", areaService.countAreas());
+        summary.put("totalReports", reportService.countReports());
+        summary.put("activeAlerts", alertService.countActiveAlerts());
         return ResponseEntity.ok(summary);
     }
 }

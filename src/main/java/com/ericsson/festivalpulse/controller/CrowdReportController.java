@@ -5,9 +5,9 @@ import com.ericsson.festivalpulse.enums.CrowdLevel;
 import com.ericsson.festivalpulse.models.CrowdAlert;
 import com.ericsson.festivalpulse.models.CrowdReport;
 import com.ericsson.festivalpulse.models.FestivalArea;
-import com.ericsson.festivalpulse.repository.CrowdAlertRepository;
-import com.ericsson.festivalpulse.repository.CrowdReportRepository;
-import com.ericsson.festivalpulse.repository.FestivalAreaRepository;
+import com.ericsson.festivalpulse.service.CrowdAlertService;
+import com.ericsson.festivalpulse.service.CrowdReportService;
+import com.ericsson.festivalpulse.service.FestivalAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +21,13 @@ import java.util.List;
 public class CrowdReportController {
 
     @Autowired
-    private CrowdReportRepository reportRepository;
+    private CrowdReportService reportService;
 
     @Autowired
-    private FestivalAreaRepository areaRepository;
+    private FestivalAreaService areaService;
 
     @Autowired
-    private CrowdAlertRepository alertRepository;
+    private CrowdAlertService alertService;
 
     @PostMapping
     public ResponseEntity<?> submitReport(@RequestBody CrowdReport request) {
@@ -37,7 +37,7 @@ public class CrowdReportController {
         }
 
         // Use getter for area
-        FestivalArea area = areaRepository.findById(request.getArea().getId()).orElse(null);
+        FestivalArea area = areaService.getAreaById(request.getArea().getId());
         if (area == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Area not found");
         }
@@ -53,24 +53,24 @@ public class CrowdReportController {
                 request.getShortNote()
         );
 
-        CrowdReport savedReport = reportRepository.save(toSave);
+        CrowdReport savedReport = reportService.saveCrowdReport(toSave);
 
         if (savedReport.getCrowdLevel() == CrowdLevel.FULL) {
-            List<CrowdAlert> activeAlerts = alertRepository.findByAreaAndStatus(area, AlertStatus.ACTIVE);
+            List<CrowdAlert> activeAlerts = alertService.getActiveAlertsByArea(area);
             if (activeAlerts.isEmpty()) {
                 CrowdAlert alert = new CrowdAlert();
                 alert.setArea(area);
                 alert.setMessage("Alert: " + area.getName() + " is at FULL capacity!");
                 alert.setStatus(AlertStatus.ACTIVE);
                 alert.setTimestamp(LocalDateTime.now());
-                alertRepository.save(alert);
+                alertService.saveAlert(alert);
             }
         } else {
             // If level is not FULL, resolve any active alerts for this area
-            List<CrowdAlert> activeAlerts = alertRepository.findByAreaAndStatus(area, AlertStatus.ACTIVE);
+            List<CrowdAlert> activeAlerts = alertService.getActiveAlertsByArea(area);
             for (CrowdAlert alert : activeAlerts) {
                 alert.setStatus(AlertStatus.RESOLVED);
-                alertRepository.save(alert);
+                alertService.saveAlert(alert);
             }
         }
 
@@ -79,7 +79,7 @@ public class CrowdReportController {
 
     @GetMapping
     public ResponseEntity<List<CrowdReport>> getRecentReports() {
-        return ResponseEntity.ok(reportRepository.findTop10ByOrderByTimestampDesc());
+        return ResponseEntity.ok(reportService.getRecentCrowdReports());
     }
 
 }

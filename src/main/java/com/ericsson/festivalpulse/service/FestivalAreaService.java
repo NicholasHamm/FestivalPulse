@@ -4,6 +4,8 @@ import com.ericsson.festivalpulse.models.FestivalArea;
 import com.ericsson.festivalpulse.repository.FestivalAreaRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class FestivalAreaService {
     private final FestivalAreaRepository festivalAreaRepository;
@@ -18,7 +20,11 @@ public class FestivalAreaService {
     public FestivalArea getAreaById(Long id) {
         return festivalAreaRepository.findById(id).orElse(null);
     }
-    public Iterable<FestivalArea> getAllAreas() {
+    public List<FestivalArea> getAllAreas() {
         return festivalAreaRepository.findAll();
+    }
+
+    public long countAreas() {
+        return festivalAreaRepository.count();
     }
 }
