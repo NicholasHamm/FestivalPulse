@@ -17,6 +17,7 @@ public class CrowdReport {
     private CrowdLevel crowdLevel;
 
     private LocalDateTime timestamp;
+    private String shortNote;
 
     public CrowdReport() {}
 
@@ -24,6 +25,14 @@ public class CrowdReport {
         this.area = area;
         this.crowdLevel = crowdLevel;
         this.timestamp = timestamp;
+        this.shortNote = "";
+    }
+
+    public CrowdReport(FestivalArea area, CrowdLevel crowdLevel, LocalDateTime timestamp, String shortNote) {
+        this.area = area;
+        this.crowdLevel = crowdLevel;
+        this.timestamp = timestamp;
+        this.shortNote = shortNote;
     }
 
     public Long getId() {
