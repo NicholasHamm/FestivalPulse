@@ -15,6 +15,13 @@ public class FestivalArea {
     @Enumerated(EnumType.STRING)
     private AreaType type;
 
+    @ManyToOne
+    @JoinColumn(name = "location_id")
+    private Location location;
+
+    private Double locationX;
+    private Double locationY;
+
     public FestivalArea() {}
 
     public FestivalArea(String name, String description, AreaType type) {
@@ -23,35 +30,18 @@ public class FestivalArea {
         this.type = type;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public AreaType getType() {
-        return type;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setType(AreaType type) {
-        this.type = type;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public AreaType getType() { return type; }
+    public void setType(AreaType type) { this.type = type; }
+    public Location getLocation() { return location; }
+    public void setLocation(Location location) { this.location = location; }
+    public Double getLocationX() { return locationX; }
+    public void setLocationX(Double locationX) { this.locationX = locationX; }
+    public Double getLocationY() { return locationY; }
+    public void setLocationY(Double locationY) { this.locationY = locationY; }
 }

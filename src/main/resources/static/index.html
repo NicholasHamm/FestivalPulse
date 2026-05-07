@@ -5,11 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Festival Pulse Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; }
         .card { margin-bottom: 20px; }
         .alert-item { border-left: 5px solid #dc3545; }
-        .nav-tabs { margin-bottom: 20px; }
+
+        #map-container {
+            position: relative;
+            display: block;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+        }
+        #map-img {
+            display: block;
+            width: 100%;
+            height: auto;
+            user-select: none;
+        }
+        .area-marker-wrap {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+        }
+        .crowd-ring {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            top: 50%; left: 50%;
+            pointer-events: none;
+        }
+        .crowd-ring.full {
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(220,53,69,0.5) 0%, rgba(220,53,69,0) 70%);
+        }
+        .crowd-ring.medium {
+            width: 70px; height: 70px;
+            background: radial-gradient(circle, rgba(255,193,7,0.55) 0%, rgba(255,193,7,0) 70%);
+        }
+        .area-marker {
+            position: relative;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.45);
+            transition: transform 0.15s;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .area-marker-wrap:hover .area-marker { transform: scale(1.25); }
+
+        #pending-marker {
+            position: absolute;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #ffc107;
+            border: 2px solid #fff;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            display: none;
+            z-index: 2;
+        }
+
+        .marker-popup {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px 14px;
+            min-width: 160px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+            font-size: 13px;
+            pointer-events: none;
+        }
+        .marker-popup h6 { margin: 0 0 4px; font-size: 14px; }
+        .marker-popup .close-popup {
+            position: absolute;
+            top: 4px; right: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            pointer-events: all;
+            color: #6c757d;
+        }
+
+        /* Type colours */
+        .type-ENTERTAINMENT  { background: #6f42c1; }
+        .type-FOOD_AND_DRINK { background: #fd7e14; }
+        .type-WELFARE        { background: #20c997; }
+        .type-FACILITIES     { background: #0dcaf0; }
+        .type-RETAIL         { background: #e83e8c; }
+        .type-UNKNOWN        { background: #6c757d; }
+
+        .legend-dot {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -23,54 +125,36 @@
             </div>
         </header>
 
-        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-            <li class="nav-tabs">
-                <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button">Dashboard</button>
-            </li>
-            <li class="nav-tabs">
-                <button class="nav-link" id="areas-tab" data-bs-toggle="tab" data-bs-target="#areas" type="button">Areas</button>
-            </li>
-            <li class="nav-tabs">
-                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button">Submit Report</button>
-            </li>
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dashboard" type="button">Dashboard</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#areas" type="button">Areas</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#map" type="button">Map</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reports" type="button">Submit Report</button></li>
         </ul>
 
         <div class="tab-content">
-            <!-- Dashboard Tab -->
+            <!-- Dashboard -->
             <div class="tab-pane fade show active" id="dashboard">
                 <div class="row">
                     <div class="col-md-8">
                         <h3>Active Alerts</h3>
-                        <div id="alerts-list">
-                            <!-- Alerts will be loaded here -->
-                        </div>
+                        <div id="alerts-list"></div>
                         <h3 class="mt-4">Recent Crowd Reports</h3>
                         <div class="table-responsive">
                             <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Area</th>
-                                        <th>Level</th>
-                                        <th>Note</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="reports-list">
-                                    <!-- Reports will be loaded here -->
-                                </tbody>
+                                <thead><tr><th>Time</th><th>Area</th><th>Level</th><th>Note</th></tr></thead>
+                                <tbody id="reports-list"></tbody>
                             </table>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <h3>Area Status</h3>
-                        <div id="areas-summary-list">
-                            <!-- Areas with their latest status could go here -->
-                        </div>
+                        <div id="areas-summary-list"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Areas Tab -->
+            <!-- Areas -->
             <div class="tab-pane fade" id="areas">
                 <div class="row">
                     <div class="col-md-6">
@@ -81,14 +165,14 @@
                                 <input type="text" class="form-control" id="area-name" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Description / Location</label>
+                                <label class="form-label">Description</label>
                                 <textarea class="form-control" id="area-desc" required></textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Type</label>
                                 <select class="form-select" id="area-type">
                                     <option value="ENTERTAINMENT">Entertainment</option>
-                                    <option value="FOOD_AND_DRINK">Food & Drink</option>
+                                    <option value="FOOD_AND_DRINK">Food &amp; Drink</option>
                                     <option value="WELFARE">Welfare</option>
                                     <option value="FACILITIES">Facilities</option>
                                     <option value="RETAIL">Retail</option>
@@ -99,14 +183,50 @@
                     </div>
                     <div class="col-md-6">
                         <h3>Existing Areas</h3>
-                        <ul class="list-group" id="all-areas-list">
-                            <!-- Areas will be listed here -->
-                        </ul>
+                        <ul class="list-group" id="all-areas-list"></ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Reports Tab -->
+            <!-- Map -->
+            <div class="tab-pane fade" id="map">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3>Festival Map</h3>
+                        <p class="text-muted small">Click the map to set coordinates, or enter them manually.</p>
+                        <div id="map-container">
+                            <img id="map-img" src="images/map.png" alt="Festival Map"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/900x560/e9ecef/6c757d?text=Festival+Map'">
+                            <div id="pending-marker"></div>
+                        </div>
+                        <div class="mt-2 text-muted small" id="map-click-hint">Click map to select coordinates</div>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>Place Area</h3>
+                        <form id="map-place-form">
+                            <div class="mb-3">
+                                <label class="form-label">Area</label>
+                                <select class="form-select" id="map-area-select" required>
+                                    <option value="">Select area...</option>
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label class="form-label">X (%)</label>
+                                    <input type="number" class="form-control" id="map-x" min="0" max="100" step="0.1" placeholder="0–100">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Y (%)</label>
+                                    <input type="number" class="form-control" id="map-y" min="0" max="100" step="0.1" placeholder="0–100">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Save Position</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports -->
             <div class="tab-pane fade" id="reports">
                 <div class="col-md-6">
                     <h3>Submit Crowd Report</h3>
@@ -114,7 +234,7 @@
                         <div class="mb-3">
                             <label class="form-label">Festival Area</label>
                             <select class="form-select" id="report-area" required>
-                                <!-- Areas will be populated here -->
+                                <option value="">Select Area...</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -140,12 +260,12 @@
     <script src="app.js"></script>
 
     <!-- Resolve Alert Modal -->
-    <div class="modal fade" id="resolveModal" tabindex="-1" aria-labelledby="resolveModalLabel" aria-hidden="true">
+    <div class="modal fade" id="resolveModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="resolveModalLabel">Resolve Alert</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Resolve Alert</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p>Select the current crowd level for <strong id="modal-area-name"></strong>:</p>
